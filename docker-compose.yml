@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: gitviz
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - gitviz-network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - gitviz-network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 8000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: gitviz
+      DB_USER: postgres
+      DB_PASSWORD: your_password
+      JWT_SECRET: your_jwt_secret_key_here_make_it_long_and_secure
+      JWT_EXPIRES_IN: 7d
+      GITHUB_CLIENT_ID: your_github_client_id
+      GITHUB_CLIENT_SECRET: your_github_client_secret
+      GITHUB_CALLBACK_URL: http://localhost:8000/api/auth/github/callback
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - repositories:/app/repositories
+    networks:
+      - gitviz-network
+    command: npm run dev
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api
+      VITE_GITHUB_CLIENT_ID: your_github_client_id
+      VITE_GITHUB_CLIENT_SECRET: your_github_client_secret
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - gitviz-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  repositories:
+
+networks:
+  gitviz-network:
+    driver: bridge
