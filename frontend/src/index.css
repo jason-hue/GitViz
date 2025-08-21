@@ -1,3 +1,6 @@
+/* Ant Design 样式 */
+@import 'antd/dist/reset.css';
+
 * {
   margin: 0;
   padding: 0;

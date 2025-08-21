@@ -23,6 +23,10 @@ GitViz 是一个现代化的 Git 仓库可视化管理系统，提供直观的�
 - **实时同步** - 与 Git 仓库实时同步
 - **安全认证** - JWT token 认证和权限管理
 - **数据库支持** - Sequelize ORM 支持 PostgreSQL/MySQL
+- **智能 CORS** - 动态跨域配置，开发生产环境自适应
+- **端口管理** - 智能端口分配和冲突检测
+- **消息系统** - 双重消息显示机制，确保用户反馈
+- **健康检查** - 完整的服务监控和诊断工具
 
 ## 🛠️ 技术栈
 
@@ -48,6 +52,9 @@ GitViz 是一个现代化的 Git 仓库可视化管理系统，提供直观的�
 - **ESLint** - 代码质量检查
 - **Prettier** - 代码格式化
 - **Nodemon** - 开发环境热重载
+- **Vite** - 快速构建工具
+- **TypeScript** - 类型安全开发
+- **Playwright** - 端到端测试
 
 ## 📦 安装说明
 
@@ -119,21 +126,74 @@ VITE_API_BASE_URL=http://localhost:8000/api
 
 ### 开发环境
 
-1. 启动后端服务：
+1. 安装依赖：
+```bash
+# 后端
+cd backend
+npm install
+
+# 前端
+cd frontend
+npm install
+```
+
+2. 启动后端服务：
 ```bash
 cd backend
 npm run dev
 ```
 
-2. 启动前端服务：
+3. 启动前端服务：
 ```bash
 cd frontend
 npm run dev
 ```
 
-3. 访问应用：
-- 前端界面：http://localhost:3000
+4. 访问应用：
+- 前端界面：http://localhost:3001 (自动端口分配)
 - 后端 API：http://localhost:8000/api
+- 健康检查：http://localhost:8000/health
+
+### 智能端口管理
+
+项目支持智能端口分配，自动检测可用端口：
+
+- **后端**：默认 8000，冲突时自动选择
+- **前端**：默认 3001，冲突时自动选择
+- **监控**：实时监控端口变化，动态更新 CORS 配置
+
+### 环境配置
+
+#### 开发环境 (.env)
+```env
+# 服务器配置
+PORT=8000
+NODE_ENV=development
+
+# 数据库配置
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=gitviz
+DB_USER=your_username
+DB_PASS=your_password
+
+# JWT 配置
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=7d
+
+# CORS 配置（开发环境支持多个域名）
+DEV_FRONTEND_URLS=http://localhost:3000,http://localhost:3001,http://localhost:3002
+
+# GitHub OAuth (可选)
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_CALLBACK_URL=http://localhost:8000/api/auth/github/callback
+```
+
+#### 前端配置 (.env)
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+```
 
 ### 生产环境
 
@@ -166,6 +226,39 @@ npm start
 - **用户名**: `demo`
 - **密码**: `demo123`
 - **权限**: 普通用户权限
+
+## 🆕 最新改进
+
+### v1.1.0 - 系统优化版
+
+#### 🎯 消息系统优化
+- **双重显示机制**：Ant Design 消息 + 页面内消息显示
+- **错误处理改进**：详细的错误信息展示和自动清除
+- **用户体验提升**：成功/错误消息自动消失，避免界面混乱
+
+#### 🔧 CORS 配置优化
+- **智能环境检测**：自动识别开发/生产环境
+- **动态域名管理**：支持多个前端域名配置
+- **开发环境友好**：自动允许 localhost 任何端口
+- **生产环境安全**：严格限制允许的域名
+
+#### 🚀 端口管理增强
+- **智能端口分配**：自动检测可用端口
+- **实时监控**：监控端口变化，动态更新配置
+- **冲突解决**：端口占用时自动选择备用端口
+- **CORS 自动更新**：端口变化时自动更新跨域配置
+
+#### 🛠️ 开发体验改进
+- **健康检查**：完整的服务监控和诊断
+- **调试工具**：详细的调试日志和错误追踪
+- **测试框架**：Playwright 端到端测试支持
+- **类型安全**：完整的 TypeScript 类型定义
+
+#### 📊 监控和诊断
+- **系统统计**：实时监控用户、仓库、提交数据
+- **性能优化**：数据库索引优化和查询优化
+- **错误追踪**：完整的错误日志和调试信息
+- **健康检查**：服务状态监控和自动恢复
 
 ## 📖 使用指南
 

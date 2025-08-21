@@ -12,6 +12,7 @@ import {
   Space,
   Popconfirm
 } from 'antd'
+const { TextArea } = Input
 import { 
   PlusOutlined, 
   EditOutlined, 
@@ -26,7 +27,6 @@ import { repositoryAPI } from '../services/api'
 import type { Repository } from '../types'
 
 const { Title } = Typography
-const { TextArea } = Input
 
 interface RepositoryFormData {
   name: string
@@ -35,7 +35,7 @@ interface RepositoryFormData {
 }
 
 const RepositoriesPage: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth)
+  // const { user } = useSelector((state: RootState) => state.auth)
   const [repositories, setRepositories] = useState<Repository[]>([])
   const [loading, setLoading] = useState(true)
   const [modalVisible, setModalVisible] = useState(false)
@@ -75,7 +75,7 @@ const RepositoriesPage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await repositoryAPI.deleteRepository(id)
+      await repositoryAPI.deleteRepository(id.toString())
       message.success('仓库删除成功')
       fetchRepositories()
     } catch (error: any) {
@@ -95,7 +95,7 @@ const RepositoriesPage: React.FC = () => {
       render: (text: string, record: Repository) => (
         <Button 
           type="link" 
-          onClick={() => window.open(`/repository/${record.id}`, '_blank')}
+          onClick={() => window.open(`/repository/${record.id.toString()}`, '_blank')}
         >
           <CodeOutlined style={{ marginRight: 4 }} />
           {text}
@@ -162,7 +162,7 @@ const RepositoriesPage: React.FC = () => {
           <Button 
             type="link" 
             icon={<EditOutlined />}
-            onClick={() => window.open(`/repository/${record.id}`, '_blank')}
+            onClick={() => window.open(`/repository/${record.id.toString()}`, '_blank')}
           >
             查看
           </Button>

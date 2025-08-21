@@ -1,10 +1,13 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Provider } from 'react-redux'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, message } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import { store } from './store'
 import LoginPage from './pages/LoginPage'
+import TestRegisterPage from './pages/TestRegisterPage'
+import SimpleErrorTest from './pages/SimpleErrorTest'
+import DebugTest from './pages/DebugTest'
 import DashboardPage from './pages/DashboardPage'
 import RepositoryDetailPage from './pages/RepositoryDetailPage'
 import RepositoriesPage from './pages/RepositoriesPage'
@@ -32,10 +35,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 const App: React.FC = () => {
   return (
     <Provider store={store}>
-      <ConfigProvider locale={zhCN}>
+      <ConfigProvider 
+        locale={zhCN}
+        theme={{
+          token: {
+            colorPrimary: '#1890ff',
+          },
+        }}
+      >
         <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/test-register" element={<TestRegisterPage />} />
+            <Route path="/error-test" element={<SimpleErrorTest />} />
+            <Route path="/debug" element={<DebugTest />} />
             <Route 
               path="/dashboard" 
               element={

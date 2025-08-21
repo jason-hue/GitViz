@@ -6,10 +6,7 @@ import rateLimit from 'express-rate-limit'
 import dotenv from 'dotenv'
 import { connectDatabase } from './config/database'
 import { setupPassport } from './config/passport'
-import configureCors, { configureCorsSync, validateCorsConfig } from './config/cors'
-import corsDebugMiddleware, { corsErrorHandler } from './middleware/corsDebug'
-import { detectFrontendPort, monitorFrontendPort } from './utils/portDetector'
-import { getOptimalBackendPort } from './utils/backendPortManager'
+import configureCors from './config/cors'
 import authRoutes from './routes/auth'
 import repositoryRoutes from './routes/repository'
 import gitRoutes from './routes/git'
@@ -27,40 +24,12 @@ const limiter = rateLimit({
   message: '请求过于频繁，请稍后再试'
 })
 
-// 验证CORS配置
-validateCorsConfig()
-
-// 动态CORS配置和端口监控
-let currentCorsConfig = configureCorsSync()
-
-// 启动端口监控
-const startPortMonitoring = async () => {
-  try {
-    // 初始检测前端端口
-    const initialPort = await detectFrontendPort()
-    console.log(`🔍 初始前端端口检测: ${initialPort}`)
-    
-    // 监控端口变化
-    monitorFrontendPort(async (newPort) => {
-      console.log(`🔄 前端端口变化: ${newPort}`)
-      
-      // 重新配置CORS
-      try {
-        currentCorsConfig = configureCorsSync()
-        console.log(`🎯 CORS配置已更新`)
-      } catch (error) {
-        console.error('❌ 更新CORS配置失败:', error)
-      }
-    })
-  } catch (error) {
-    console.error('❌ 端口监控启动失败:', error)
-  }
-}
-
 // 中间件
 app.use(helmet())
-app.use(cors(currentCorsConfig))
-app.use(corsDebugMiddleware)
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'],
+  credentials: true
+}))
 app.use(morgan('combined'))
 app.use(limiter)
 app.use(express.json({ limit: '10mb' }))
@@ -82,9 +51,6 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: '路由不存在' })
 })
 
-// CORS错误处理中间件
-app.use(corsErrorHandler)
-
 // 错误处理中间件
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack)
@@ -100,14 +66,10 @@ const startServer = async () => {
     // 设置Passport
     setupPassport()
     
-    // 启动端口监控
-    await startPortMonitoring()
-    
     app.listen(PORT, () => {
       console.log(`🚀 服务器运行在端口 ${PORT}`)
       console.log(`📊 健康检查: http://localhost:${PORT}/health`)
       console.log(`🔗 API地址: http://localhost:${PORT}/api`)
-      console.log(`🔄 动态端口监控已启动`)
     })
   } catch (error) {
     console.error('❌ 服务器启动失败:', error)

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Test</title>
+</head>
+<body>
+    <h1>Emergency Test Page</h1>
+    <button onclick="testClick()">Test Click</button>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+    
+    <script>
+        function testClick() {
+            console.log('Button clicked!');
+            document.getElementById('result').innerHTML = 'Button clicked at: ' + new Date().toLocaleTimeString();
+        }
+        
+        async function testAPI() {
+            try {
+                console.log('Testing API...');
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+                });
+                const data = await response.json();
+                console.log('API response:', data);
+                document.getElementById('result').innerHTML = 'API Success: ' + JSON.stringify(data).substring(0, 100);
+            } catch (error) {
+                console.error('API error:', error);
+                document.getElementById('result').innerHTML = 'API Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

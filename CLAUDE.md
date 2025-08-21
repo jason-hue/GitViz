@@ -4,11 +4,19 @@
 
 GitViz 是一个现代化的 Git 仓库可视化管理系统，提供直观的界面来管理 Git 仓库、分支、提交和团队协作。
 
+### 最新版本: v1.1.0
+- **消息系统优化**: 双重消息显示机制，确保用户反馈
+- **CORS 配置优化**: 智能环境检测和动态域名管理
+- **端口管理增强**: 智能端口分配和实时监控
+- **开发体验改进**: 健康检查、调试工具、测试框架
+
 ### 技术栈
-- **前端**: React 18 + TypeScript + Ant Design + Redux Toolkit
+- **前端**: React 18 + TypeScript + Ant Design + Redux Toolkit + Vite
 - **后端**: Node.js + Express + TypeScript + Sequelize
 - **数据库**: SQLite (开发) / PostgreSQL (生产)
 - **认证**: JWT + bcryptjs
+- **测试**: Playwright + Testing Library
+- **构建工具**: Vite + Nodemon
 
 ## 项目结构
 
@@ -20,15 +28,18 @@ gitviz/
 │   │   ├── components/      # 可复用组件
 │   │   ├── services/       # API 服务
 │   │   ├── store/          # Redux 状态管理
-│   │   └── types/          # TypeScript 类型定义
-│   └── tests/              # Playwright 测试
+│   │   ├── types/          # TypeScript 类型定义
+│   │   └── utils/          # 工具函数
+│   ├── tests/              # Playwright 测试
+│   └── public/             # 静态资源
 ├── backend/                 # Node.js 后端服务
 │   ├── src/
 │   │   ├── routes/         # API 路由
 │   │   ├── models/         # 数据库模型
 │   │   ├── middleware/     # 中间件
 │   │   ├── config/         # 配置文件
-│   │   └── services/       # 业务逻辑
+│   │   ├── services/       # 业务逻辑
+│   │   └── utils/          # 工具函数
 │   └── database.sqlite     # SQLite 数据库文件
 └── docs/                   # 项目文档
 ```
@@ -37,6 +48,10 @@ gitviz/
 
 ### 运行命令
 ```bash
+# 安装依赖
+cd backend && npm install
+cd frontend && npm install
+
 # 启动后端服务
 cd backend && npm run dev
 
@@ -49,11 +64,16 @@ cd frontend && npm test
 # 构建项目
 cd frontend && npm run build
 cd backend && npm run build
+
+# 生产环境
+cd backend && npm run dev:simple  # 简化生产模式
+cd frontend && npx vite preview --port 3001 --host 0.0.0.0
 ```
 
-### 端口配置
-- **前端**: http://localhost:3000
-- **后端**: http://localhost:8000
+### 智能端口配置
+- **后端**: 默认 8000，冲突时自动选择
+- **前端**: 默认 3001，冲突时自动选择
+- **健康检查**: http://localhost:8000/health
 - **API**: http://localhost:8000/api
 
 ## 核心功能
@@ -89,6 +109,12 @@ cd backend && npm run build
 - 系统统计
 - 系统设置
 
+### 7. 系统监控和诊断
+- 健康检查和状态监控
+- CORS 配置和调试
+- 端口管理和冲突检测
+- 错误日志和调试信息
+
 ## 测试账户
 
 ### 管理员账户
@@ -111,6 +137,31 @@ cd backend && npm run build
 ### 普通用户权限
 - 只能访问自己的仓库和功能
 - 无法访问管理员功能
+
+## 新功能特性
+
+### 1. 智能消息系统
+- **双重显示机制**: Ant Design 消息 + 页面内消息显示
+- **错误处理改进**: 详细的错误信息展示和自动清除
+- **用户体验提升**: 成功/错误消息自动消失，避免界面混乱
+
+### 2. CORS 配置优化
+- **智能环境检测**: 自动识别开发/生产环境
+- **动态域名管理**: 支持多个前端域名配置
+- **开发环境友好**: 自动允许 localhost 任何端口
+- **生产环境安全**: 严格限制允许的域名
+
+### 3. 端口管理增强
+- **智能端口分配**: 自动检测可用端口
+- **实时监控**: 监控端口变化，动态更新配置
+- **冲突解决**: 端口占用时自动选择备用端口
+- **CORS 自动更新**: 端口变化时自动更新跨域配置
+
+### 4. 开发体验改进
+- **健康检查**: 完整的服务监控和诊断
+- **调试工具**: 详细的调试日志和错误追踪
+- **测试框架**: Playwright 端到端测试支持
+- **类型安全**: 完整的 TypeScript 类型定义
 
 ## API 端点
 
@@ -202,16 +253,39 @@ interface Repository {
 创建 `backend/.env` 文件：
 
 ```env
+# 服务器配置
 PORT=8000
 NODE_ENV=development
+
+# 数据库配置
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=gitviz
 DB_USER=your_username
 DB_PASS=your_password
+
+# JWT 配置
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=7d
-FRONTEND_URL=http://localhost:3000
+
+# CORS 配置（开发环境支持多个域名）
+DEV_FRONTEND_URLS=http://localhost:3000,http://localhost:3001,http://localhost:3002
+
+# GitHub OAuth (可选)
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_CALLBACK_URL=http://localhost:8000/api/auth/github/callback
+
+# 速率限制
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+```
+
+#### 前端配置
+创建 `frontend/.env` 文件：
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
 ### 构建和部署
@@ -243,6 +317,18 @@ cd backend && npm start
 - 检查管理员权限配置
 - 验证前端权限控制逻辑
 
+### 4. CORS 问题
+- 检查 `DEV_FRONTEND_URLS` 环境变量配置
+- 确认前端端口在允许列表中
+- 查看后端 CORS 调试日志
+- 验证预检请求处理
+
+### 5. 端口冲突问题
+- 检查端口占用情况
+- 确认智能端口分配功能正常
+- 查看端口监控日志
+- 验证 CORS 配置自动更新
+
 ## 扩展功能
 
 ### 待实现功能
@@ -269,4 +355,10 @@ cd backend && npm start
 
 ---
 
-最后更新：2024-08-20
+最后更新：2025-08-21
+
+### 重要提醒
+- 项目现在支持智能端口分配，无需手动修改端口配置
+- CORS 配置已优化，支持多域名开发和生产环境
+- 消息系统已修复，确保用户反馈正常显示
+- 健康检查端点：`GET /health`

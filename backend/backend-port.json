@@ -1,0 +1,6 @@
+{
+  "backendPort": 8001,
+  "frontendPort": 3001,
+  "timestamp": "2025-08-21T13:30:07.173Z",
+  "source": "frontend-startup"
+}

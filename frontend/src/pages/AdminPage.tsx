@@ -33,7 +33,6 @@ import { adminAPI } from '../services/api'
 import type { User } from '../types'
 
 const { Title } = Typography
-const { TextArea } = Input
 const { Option } = Select
 
 interface SystemStats {

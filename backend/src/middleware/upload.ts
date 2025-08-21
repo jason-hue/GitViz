@@ -1,6 +1,6 @@
 import multer from 'multer'
 import path from 'path'
-import { Request } from 'express'
+import { Request, Response, NextFunction } from 'express'
 
 // 配置存储
 const storage = multer.diskStorage({

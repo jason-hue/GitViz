@@ -5,7 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
+    "start:simple": "node -r dotenv/config src/index-simple.ts",
+    "start:production": "node -r dotenv/config src/index-production.ts",
     "dev": "nodemon src/index.ts",
+    "dev:simple": "nodemon src/index-simple.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src/**/*.ts",
