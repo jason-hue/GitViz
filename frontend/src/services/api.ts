@@ -53,7 +53,13 @@ export const authAPI = {
   login: (credentials: { username: string; password: string }) =>
     api.post<{ user: User; token: string }>('/auth/login', credentials),
   
-  register: (userData: { username: string; email: string; password: string }) =>
+  register: (userData: { 
+    username: string; 
+    email: string; 
+    password: string;
+    isAdmin?: boolean;
+    adminCode?: string;
+  }) =>
     api.post<{ user: User; token: string }>('/auth/register', userData),
   
   logout: () => api.post('/auth/logout'),

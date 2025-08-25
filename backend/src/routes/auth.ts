@@ -12,7 +12,9 @@ const router = express.Router()
 router.post('/register', [
   body('username').isLength({ min: 3, max: 50 }).withMessage('用户名长度必须在3-50个字符之间'),
   body('email').isEmail().withMessage('请输入有效的邮箱地址'),
-  body('password').isLength({ min: 6 }).withMessage('密码长度至少6个字符')
+  body('password').isLength({ min: 6 }).withMessage('密码长度至少6个字符'),
+  body('isAdmin').optional().isBoolean().withMessage('管理员标志必须是布尔值'),
+  body('adminCode').optional().isString().withMessage('管理员代码必须是字符串')
 ], async (req: any, res: any) => {
   try {
     const errors = validationResult(req)
@@ -20,7 +22,7 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { username, email, password } = req.body
+    const { username, email, password, isAdmin = false, adminCode } = req.body
 
     // 检查用户是否已存在
     const existingUser = await User.findOne({
@@ -33,16 +35,53 @@ router.post('/register', [
       return res.status(400).json({ error: '用户名或邮箱已存在' })
     }
 
+    // 如果是管理员注册，验证管理员代码
+    if (isAdmin) {
+      const validAdminCode = process.env.ADMIN_REGISTER_CODE || 'ADMIN2024'
+      if (adminCode !== validAdminCode) {
+        return res.status(400).json({ error: '管理员注册码错误' })
+      }
+      
+      // 检查是否已有管理员账户
+      const existingAdmin = await User.findOne({
+        where: {
+          id: {
+            [Op.in]: [1, 4] // 根据项目设定，ID为1或4的用户为管理员
+          }
+        }
+      })
+      
+      if (existingAdmin) {
+        return res.status(400).json({ error: '管理员账户已存在，无法重复创建' })
+      }
+    }
+
     // 加密密码
     const saltRounds = 10
     const hashedPassword = await bcrypt.hash(password, saltRounds)
 
     // 创建用户
-    const user = await User.create({
+    const userData: any = {
       username,
       email,
       password: hashedPassword
-    })
+    }
+
+    // 如果是管理员，设置特定的ID（优先使用ID 1，如果已存在则使用ID 4）
+    if (isAdmin) {
+      const id1Exists = await User.findByPk(1)
+      const id4Exists = await User.findByPk(4)
+      
+      if (!id1Exists) {
+        userData.id = 1
+      } else if (!id4Exists) {
+        userData.id = 4
+      } else {
+        return res.status(400).json({ error: '管理员账户数量已达上限' })
+      }
+    }
+
+    const user = await User.create(userData)
 
     // 生成JWT令牌
     const token = jwt.sign(

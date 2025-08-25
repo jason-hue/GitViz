@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Input, Button, Card, message, Tabs, App } from 'antd'
-import { UserOutlined, LockOutlined, GithubOutlined } from '@ant-design/icons'
+import { Input, Button, Card, message, Tabs, App, Radio, Space, Tooltip } from 'antd'
+import { UserOutlined, LockOutlined, GithubOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { loginSuccess } from '../store/slices/authSlice'
@@ -9,7 +9,13 @@ import { authAPI } from '../services/api'
 const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [loginForm, setLoginForm] = useState({ username: '', password: '' })
-  const [registerForm, setRegisterForm] = useState({ username: '', email: '', password: '' })
+  const [registerForm, setRegisterForm] = useState({ 
+    username: '', 
+    email: '', 
+    password: '',
+    isAdmin: false,
+    adminCode: ''
+  })
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const navigate = useNavigate()
@@ -126,12 +132,40 @@ const LoginPage: React.FC = () => {
       showError('请填写所有字段')
       return
     }
+
+    // 如果选择管理员账户，需要验证管理员代码
+    if (registerForm.isAdmin && !registerForm.adminCode) {
+      message.warning({
+        content: '请输入管理员注册码',
+        duration: 3,
+      })
+      showError('请输入管理员注册码')
+      return
+    }
+
+    // 验证管理员代码（这里使用简单的硬编码验证，实际项目中应该从环境变量或配置中读取）
+    if (registerForm.isAdmin && registerForm.adminCode !== 'ADMIN2024') {
+      message.warning({
+        content: '管理员注册码错误',
+        duration: 3,
+      })
+      showError('管理员注册码错误')
+      return
+    }
     
     console.log('handleRegister called with:', registerForm)
     setLoading(true)
     try {
       console.log('Calling authAPI.register...')
-      const response = await authAPI.register(registerForm)
+      // 准备注册数据，只发送需要的字段
+      const registerData = {
+        username: registerForm.username,
+        email: registerForm.email,
+        password: registerForm.password,
+        isAdmin: registerForm.isAdmin,
+        adminCode: registerForm.adminCode
+      }
+      const response = await authAPI.register(registerData)
       console.log('Register response:', response)
       const { user, token } = response.data
       
@@ -309,13 +343,44 @@ const LoginPage: React.FC = () => {
                     onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
                     style={{ marginBottom: 16 }}
                   />
+                  
+                  {/* 用户类型选择 */}
+                  <div style={{ marginBottom: 16 }}>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span>账户类型：</span>
+                        <Radio.Group 
+                          value={registerForm.isAdmin} 
+                          onChange={(e) => setRegisterForm({...registerForm, isAdmin: e.target.value, adminCode: ''})}
+                          size="small"
+                        >
+                          <Radio value={false}>普通用户</Radio>
+                          <Radio value={true}>管理员</Radio>
+                        </Radio.Group>
+                        <Tooltip title="管理员账户拥有系统管理权限">
+                          <InfoCircleOutlined style={{ color: '#666' }} />
+                        </Tooltip>
+                      </div>
+                      
+                      {/* 管理员代码输入 */}
+                      {registerForm.isAdmin && (
+                        <Input.Password
+                          placeholder="请输入管理员注册码"
+                          value={registerForm.adminCode}
+                          onChange={(e) => setRegisterForm({...registerForm, adminCode: e.target.value})}
+                          style={{ marginBottom: 8 }}
+                        />
+                      )}
+                    </Space>
+                  </div>
+                  
                   <Button 
                     type="primary" 
                     loading={loading}
                     onClick={handleRegister}
                     style={{ width: '100%' }}
                   >
-                    注册
+                    {registerForm.isAdmin ? '注册管理员账户' : '注册普通账户'}
                   </Button>
                 </div>
               )
