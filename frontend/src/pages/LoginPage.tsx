@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Input, Button, Card, message, Tabs, App } from 'antd'
 import { UserOutlined, LockOutlined, GithubOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
@@ -76,15 +76,31 @@ const LoginPage: React.FC = () => {
       
       // 处理错误消息
       let errorMessage = '登录失败'
-      if (error instanceof Error) {
-        if (error && typeof error === 'object' && 'response' in error) {
-          const axiosError = error as { response?: { data?: { message?: string } } }
-          if (axiosError.response?.data?.message) {
-            errorMessage = axiosError.response.data.message
-          }
-        } else {
-          errorMessage = error.message
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { 
+          response?: { 
+            data?: { 
+              error?: string, 
+              message?: string,
+              errors?: Array<{ msg: string }>
+            } 
+          } 
         }
+        
+        if (axiosError.response?.data?.errors) {
+          // 处理验证错误数组
+          const validationErrors = axiosError.response.data.errors
+          errorMessage = validationErrors.map(err => err.msg).join(', ')
+        } else if (axiosError.response?.data?.error) {
+          // 处理后端返回的错误信息
+          errorMessage = axiosError.response.data.error
+        } else if (axiosError.response?.data?.message) {
+          // 处理消息类型的错误
+          errorMessage = axiosError.response.data.message
+        }
+      } else if (error instanceof Error) {
+        // 处理网络错误等
+        errorMessage = error.message
       }
       
       message.error({

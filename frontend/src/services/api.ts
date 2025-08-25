@@ -39,7 +39,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // 只在非登录页面处理401错误，避免登录错误时页面刷新
+    if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
